@@ -3,17 +3,15 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { AuthModule } from './auth/auth.module';
-import { User } from './auth/user.entity';
 import { ProtectedModule } from './protected/protected.module';
+import { AppController } from './app.controller';
+import { AppService } from './app.service';
+import { User } from './auth/user.entity';
 
 @Module({
   imports: [
-    ConfigModule.forRoot({
-      isGlobal: true, // Torna as variáveis de ambiente disponíveis globalmente
-    }),
+    ConfigModule.forRoot({ isGlobal: true }),
     TypeOrmModule.forRootAsync({
-      imports: [ConfigModule],
-      inject: [ConfigService],
       useFactory: (configService: ConfigService) => ({
         type: 'postgres',
         host: configService.get<string>('DB_HOST'),
@@ -22,11 +20,14 @@ import { ProtectedModule } from './protected/protected.module';
         password: configService.get<string>('DB_PASSWORD'),
         database: configService.get<string>('DB_NAME'),
         entities: [User],
-        synchronize: true, // Use false em produção
+        synchronize: true,
       }),
+      inject: [ConfigService],
     }),
     AuthModule,
     ProtectedModule,
   ],
+  controllers: [AppController],
+  providers: [AppService],
 })
 export class AppModule {}
